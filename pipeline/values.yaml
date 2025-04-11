@@ -1,0 +1,4 @@
+global:
+  noneAppVars: [ "global" ]
+  otherContainters: ["sidecars", "initContainers"]
+  triggerVariables: [ "configMaps", "secretMaps" ]

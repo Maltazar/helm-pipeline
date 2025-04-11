@@ -1,0 +1,106 @@
+{{- $all := . -}}
+
+{{/*
+Non main container includes
+*/}}
+{{- include "libs.service.otherContainters" $all -}}
+{{- include "libs.deployment.otherContainters" $all -}}
+{{- include "libs.configmap.otherContainters" $all -}}
+{{- include "libs.ingress.otherContainters" $all -}}
+{{- include "libs.secret.otherContainters" $all -}}
+{{- include "libs.persistentvolumeclaim.otherContainters" $all -}}
+{{- include "libs.horizontalpodautoscaler.otherContainters" $all -}}
+{{- include "libs.verticalpodautoscaler.otherContainters" $all -}}
+{{- include "libs.cronjob.otherContainters" $all -}}
+{{- include "libs.job.otherContainters" $all -}}
+{{- include "libs.statefulset.otherContainters" $all -}}
+{{- include "libs.daemonset.otherContainters" $all -}}
+{{- include "libs.networkpolicy.otherContainters" $all -}}
+{{- include "libs.role.otherContainters" $all -}}
+{{- include "libs.rolebinding.otherContainters" $all -}}
+{{- include "libs.serviceaccount.otherContainters" $all -}}
+{{- include "libs.clusterrole.otherContainters" $all -}}
+{{- include "libs.clusterrolebinding.otherContainters" $all -}}
+{{- include "libs.poddisruptionbudget.otherContainters" $all -}}
+{{- include "libs.priorityclass.otherContainters" $all -}}
+{{- include "libs.resourcequota.otherContainters" $all -}}
+{{- include "libs.limitrange.otherContainters" $all -}}
+{{- include "libs.workflow.otherContainters" $all -}}
+{{- include "libs.eventsource.otherContainters" $all -}}
+{{- include "libs.sensor.otherContainters" $all -}}
+{{- include "libs.ciliumnetworkpolicy.otherContainters" $all -}}
+{{- include "libs.ciliumclusterwidenetworkpolicy.otherContainters" $all -}}
+{{- include "libs.externalsecret.otherContainters" $all -}}
+{{- include "libs.secretstore.otherContainters" $all -}}
+{{- include "libs.clustersecretstore.otherContainters" $all -}}
+{{- include "libs.rollout.otherContainters" $all -}}
+{{- include "libs.application.otherContainters" $all -}}
+
+{{/*
+Global includes
+*/}}
+{{- include "libs.service" ( list $all "global" ) -}}
+{{- include "libs.configmap" ( list $all "global" ) -}}
+{{- include "libs.ingress" ( list $all "global" ) -}}
+{{- include "libs.secret" ( list $all "global" ) -}}
+{{- include "libs.persistentvolumeclaim" ( list $all "global" ) -}}
+{{- include "libs.cronjob" ( list $all "global" ) -}}
+{{- include "libs.job" ( list $all "global" ) -}}
+{{- include "libs.daemonset" ( list $all "global" ) -}}
+{{- include "libs.networkpolicy" ( list $all "global" ) -}}
+{{- include "libs.role" ( list $all "global" ) -}}
+{{- include "libs.rolebinding" ( list $all "global" ) -}}
+{{- include "libs.serviceaccount" ( list $all "global" ) -}}
+{{- include "libs.clusterrole" ( list $all "global" ) -}}
+{{- include "libs.clusterrolebinding" ( list $all "global" ) -}}
+{{- include "libs.poddisruptionbudget" ( list $all "global" ) -}}
+{{- include "libs.priorityclass" ( list $all "global" ) -}}
+{{- include "libs.resourcequota" ( list $all "global" ) -}}
+{{- include "libs.limitrange" ( list $all "global" ) -}}
+{{- include "libs.workflow" ( list $all "global" ) -}}
+{{- include "libs.eventsource" ( list $all "global" ) -}}
+{{- include "libs.sensor" ( list $all "global" ) -}}
+{{- include "libs.ciliumnetworkpolicy" ( list $all "global" ) -}}
+{{- include "libs.ciliumclusterwidenetworkpolicy" ( list $all "global" ) -}}
+{{- include "libs.externalsecret" ( list $all "global" ) -}}
+{{- include "libs.secretstore" ( list $all "global" ) -}}
+{{- include "libs.clustersecretstore" ( list $all "global" ) -}}
+{{- include "libs.rollout" ( list $all "global" ) -}}
+{{- include "libs.application" ( list $all "global" ) -}}
+
+{{/*
+Application range
+*/}}
+{{- range ( include "helper.enabled.apps" $all | fromJsonArray ) -}}
+{{- $app := . -}}
+{{- include "libs.service" ( list $all $app ) -}}
+{{- include "libs.deployment" ( list $all $app ) -}}
+{{- include "libs.configmap" ( list $all $app ) -}}
+{{- include "libs.ingress" ( list $all $app ) -}}
+{{- include "libs.secret" ( list $all $app ) -}}
+{{- include "libs.persistentvolumeclaim" ( list $all $app ) -}}
+{{- include "libs.horizontalpodautoscaler" ( list $all $app ) -}}
+{{- include "libs.verticalpodautoscaler" ( list $all $app ) -}}
+{{- include "libs.cronjob" ( list $all $app ) -}}
+{{- include "libs.job" ( list $all $app ) -}}
+{{- include "libs.statefulset" ( list $all $app ) -}}
+{{- include "libs.daemonset" ( list $all $app ) -}}
+{{- include "libs.networkpolicy" ( list $all $app ) -}}
+{{- include "libs.role" ( list $all $app ) -}}
+{{- include "libs.rolebinding" ( list $all $app ) -}}
+{{- include "libs.serviceaccount" ( list $all $app ) -}}
+{{- include "libs.poddisruptionbudget" ( list $all $app ) -}}
+{{- include "libs.resourcequota" ( list $all $app ) -}}
+{{- include "libs.limitrange" ( list $all $app ) -}}
+{{- include "libs.workflow" ( list $all $app ) -}}
+{{- include "libs.eventsource" ( list $all $app ) -}}
+{{- include "libs.sensor" ( list $all $app ) -}}
+{{- include "libs.ciliumnetworkpolicy" ( list $all $app ) -}}
+{{- include "libs.ciliumclusterwidenetworkpolicy" ( list $all $app ) -}}
+{{- include "libs.externalsecret" ( list $all $app ) -}}
+{{- include "libs.secretstore" ( list $all $app ) -}}
+{{- include "libs.clustersecretstore" ( list $all $app ) -}}
+{{- include "libs.rollout" ( list $all $app ) -}}
+{{- include "libs.application" ( list $all $app ) -}}
+
+{{- end -}}
