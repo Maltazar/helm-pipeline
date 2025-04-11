@@ -1,0 +1,6 @@
+apiVersion: v2
+description: My base pipeline chart for deployment of everything
+# type: library
+name: pipeline
+version: 0.1.0
+type: application
