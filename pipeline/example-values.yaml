@@ -1,0 +1,400 @@
+# Global settings
+global:
+  environment: production
+  domain: example.com
+  clusterName: my-cluster
+
+# Core Kubernetes Resources
+deployments:
+  nginx:
+    enabled: true
+    replicas: 2
+    image:
+      repository: nginx
+      tag: latest
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    ports:
+      - containerPort: 80
+        name: http
+    livenessProbe:
+      httpGet:
+        path: /
+        port: http
+    readinessProbe:
+      httpGet:
+        path: /
+        port: http
+
+services:
+  nginx:
+    enabled: true
+    type: ClusterIP
+    ports:
+      - port: 80
+        targetPort: http
+        name: http
+
+configmaps:
+  nginx-config:
+    enabled: true
+    data:
+      nginx.conf: |
+        server {
+          listen 80;
+          location / {
+            root /usr/share/nginx/html;
+          }
+        }
+
+secrets:
+  db-credentials:
+    enabled: true
+    type: Opaque
+    data:
+      username: base64encodedusername
+      password: base64encodedpassword
+
+persistentvolumeclaims:
+  nginx-data:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+    storageClassName: standard
+
+horizontalpodautoscalers:
+  nginx:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+verticalpodautoscalers:
+  nginx:
+    enabled: true
+    updatePolicy:
+      updateMode: Auto
+    resourcePolicy:
+      containerPolicies:
+        - containerName: nginx
+          minAllowed:
+            cpu: 100m
+            memory: 128Mi
+          maxAllowed:
+            cpu: 1
+            memory: 1Gi
+
+cronjobs:
+  backup:
+    enabled: true
+    schedule: "0 0 * * *"
+    jobTemplate:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: backup
+                image: busybox
+                command: ["/bin/sh", "-c", "echo Backup completed"]
+
+jobs:
+  init-db:
+    enabled: true
+    spec:
+      template:
+        spec:
+          containers:
+            - name: init
+              image: postgres:13
+              command: ["/bin/sh", "-c", "echo Database initialized"]
+
+statefulsets:
+  redis:
+    enabled: true
+    replicas: 3
+    serviceName: redis
+    volumeClaimTemplates:
+      - metadata:
+          name: data
+        spec:
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 1Gi
+
+daemonsets:
+  node-exporter:
+    enabled: true
+    template:
+      spec:
+        containers:
+          - name: node-exporter
+            image: prom/node-exporter:latest
+            ports:
+              - containerPort: 9100
+                name: metrics
+
+networkpolicies:
+  nginx:
+    enabled: true
+    podSelector:
+      matchLabels:
+        app: nginx
+    ingress:
+      - from:
+          - podSelector:
+              matchLabels:
+                app: frontend
+        ports:
+          - port: 80
+            protocol: TCP
+
+roles:
+  nginx-role:
+    enabled: true
+    rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["get", "list", "watch"]
+
+rolebindings:
+  nginx-rolebinding:
+    enabled: true
+    roleRef:
+      kind: Role
+      name: nginx-role
+    subjects:
+      - kind: ServiceAccount
+        name: nginx
+        namespace: default
+
+serviceaccounts:
+  nginx:
+    enabled: true
+    automountServiceAccountToken: true
+
+clusterroles:
+  cluster-admin:
+    enabled: true
+    rules:
+      - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: ["*"]
+
+clusterrolebindings:
+  cluster-admin-binding:
+    enabled: true
+    roleRef:
+      kind: ClusterRole
+      name: cluster-admin
+    subjects:
+      - kind: ServiceAccount
+        name: admin
+        namespace: kube-system
+
+poddisruptionbudgets:
+  nginx:
+    enabled: true
+    minAvailable: 1
+    selector:
+      matchLabels:
+        app: nginx
+
+priorityclasses:
+  high-priority:
+    enabled: true
+    value: 1000000
+    globalDefault: false
+    description: "High priority class for critical workloads"
+
+resourcequotas:
+  team-a:
+    enabled: true
+    hard:
+      cpu: "10"
+      memory: 20Gi
+      pods: "10"
+    scopes:
+      - BestEffort
+
+limitranges:
+  default-limits:
+    enabled: true
+    limits:
+      - type: Container
+        default:
+          cpu: 100m
+          memory: 128Mi
+        defaultRequest:
+          cpu: 50m
+          memory: 64Mi
+
+# Argo Workflows
+workflows:
+  hello-world:
+    enabled: true
+    entrypoint: whalesay
+    templates:
+      - name: whalesay
+        container:
+          image: docker/whalesay:latest
+          command: ["cowsay", "hello world"]
+
+eventsources:
+  webhook:
+    enabled: true
+    webhook:
+      port: 12000
+      endpoint: /webhook
+      method: POST
+
+sensors:
+  webhook-sensor:
+    enabled: true
+    dependencies:
+      - name: webhook-dep
+        eventSourceName: webhook
+        eventName: webhook
+    triggers:
+      - template:
+          name: webhook-trigger
+          argoWorkflow:
+            operation: submit
+            source:
+              resource:
+                apiVersion: argoproj.io/v1alpha1
+                kind: Workflow
+                metadata:
+                  generateName: webhook-workflow-
+                spec:
+                  entrypoint: whalesay
+                  templates:
+                    - name: whalesay
+                      container:
+                        image: docker/whalesay:latest
+                        command: ["cowsay", "hello world"]
+
+# Argo Rollouts
+rollouts:
+  nginx:
+    enabled: true
+    replicas: 3
+    strategy:
+      canary:
+        steps:
+          - setWeight: 20
+          - pause: {}
+          - setWeight: 40
+          - pause: {duration: 10m}
+          - setWeight: 60
+          - pause: {duration: 10m}
+          - setWeight: 80
+          - pause: {duration: 10m}
+    template:
+      spec:
+        containers:
+          - name: nginx
+            image: nginx:latest
+            ports:
+              - containerPort: 80
+
+# Argo CD
+applications:
+  nginx-app:
+    enabled: true
+    project: default
+    source:
+      repoURL: https://github.com/example/nginx-manifests.git
+      targetRevision: HEAD
+      path: manifests
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: default
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+
+# Cilium
+ciliumnetworkpolicies:
+  nginx-policy:
+    enabled: true
+    endpointSelector:
+      matchLabels:
+        app: nginx
+    ingress:
+      - fromEndpoints:
+          - matchLabels:
+              app: frontend
+        toPorts:
+          - ports:
+              - port: 80
+                protocol: TCP
+
+ciliumclusterwidenetworkpolicies:
+  cluster-policy:
+    enabled: true
+    endpointSelector:
+      matchLabels:
+        app: nginx
+    ingress:
+      - fromCIDR:
+          - 10.0.0.0/8
+        toPorts:
+          - ports:
+              - port: 80
+                protocol: TCP
+
+# External Secrets
+externalsecrets:
+  db-secret:
+    enabled: true
+    refreshInterval: 1h
+    secretStoreRef:
+      name: vault-store
+      kind: SecretStore
+    data:
+      - secretKey: username
+        remoteRef:
+          key: /secret/data/db
+          property: username
+      - secretKey: password
+        remoteRef:
+          key: /secret/data/db
+          property: password
+
+secretstores:
+  vault-store:
+    enabled: true
+    provider:
+      vault:
+        server: http://vault:8200
+        path: secret
+        version: v2
+        auth:
+          tokenSecretRef:
+            name: vault-token
+            key: token
+
+clustersecretstores:
+  aws-store:
+    enabled: true
+    provider:
+      aws:
+        region: us-west-2
+        auth:
+          secretRef:
+            accessKeyIDSecretRef:
+              name: aws-secret
+              key: access-key
+            secretAccessKeySecretRef:
+              name: aws-secret
+              key: secret-key 
